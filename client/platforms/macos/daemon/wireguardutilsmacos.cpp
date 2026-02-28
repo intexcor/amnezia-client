@@ -167,6 +167,15 @@ bool WireguardUtilsMacos::addInterface(const InterfaceConfig& config) {
               params.blockAddrs.append(net.toString());
           }
       }
+        
+      params.blockIPv6 = true;
+      for (const IPAddress& ip : config.m_allowedIPAddressRanges) {
+          if (ip.type() == QAbstractSocket::IPv6Protocol) {
+              params.blockIPv6 = false;
+              break;
+          }
+      }
+
       applyFirewallRules(params);
     }
   }
@@ -482,7 +491,7 @@ void WireguardUtilsMacos::applyFirewallRules(FirewallParams& params)
                                 QStringLiteral("blocknets"), params.blockAddrs);
 
   MacOSFirewall::setAnchorEnabled(QStringLiteral("200.allowVPN"), true);
-  MacOSFirewall::setAnchorEnabled(QStringLiteral("250.blockIPv6"), true);
+  MacOSFirewall::setAnchorEnabled(QStringLiteral("250.blockIPv6"), params.blockIPv6);
   MacOSFirewall::setAnchorEnabled(QStringLiteral("290.allowDHCP"), true);
   MacOSFirewall::setAnchorEnabled(QStringLiteral("300.allowLAN"), true);
   MacOSFirewall::setAnchorEnabled(QStringLiteral("310.blockDNS"), true);
